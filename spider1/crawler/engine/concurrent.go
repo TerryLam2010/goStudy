@@ -30,10 +30,12 @@ func (e *ConcurrentEngine) Run(seeds ...Request){
 		createWorker(e.Scheduler.WorkerChan(),out,e.Scheduler)
 	}
 	for _,r := range seeds {
+		// 提交到  s.requestChan <- r 放入Scheduler 的chan 里面
 		e.Scheduler.Submit(r)
 	}
 	profileCount := 0
 	for {
+		// 死循环等待chan 给数据
 		result := <-out
 		for _,item := range result.Items {
 			if _,ok := item.(model.Profile);ok {
@@ -46,6 +48,7 @@ func (e *ConcurrentEngine) Run(seeds ...Request){
 			if isDuplicate(r.Url){
 				continue
 			}
+			// 把爬到的url 继续给到chan 继续爬
 			e.Scheduler.Submit(r)
 		}
 	}
